@@ -28,7 +28,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
+
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
@@ -69,7 +69,7 @@ public class SecurityConfig {
 }
 
 @Component
-@RequiredArgsConstructor
+
 class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;

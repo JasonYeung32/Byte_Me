@@ -1,14 +1,12 @@
 package com.byteme.app;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Locale;
@@ -16,7 +14,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/reservations")
-@RequiredArgsConstructor
 public class ReservationController {
 
     private final ReservationRepository reservationRepo;
@@ -25,6 +22,17 @@ public class ReservationController {
     private final EmployeeRepository employeeRepo;
     private final RescueEventRepository rescueEventRepo;
     private final PasswordEncoder passwordEncoder;
+
+    public ReservationController(ReservationRepository reservationRepo, BundlePostingRepository bundleRepo,
+                                  OrganisationRepository orgRepo, EmployeeRepository employeeRepo,
+                                  RescueEventRepository rescueEventRepo, PasswordEncoder passwordEncoder) {
+        this.reservationRepo = reservationRepo;
+        this.bundleRepo = bundleRepo;
+        this.orgRepo = orgRepo;
+        this.employeeRepo = employeeRepo;
+        this.rescueEventRepo = rescueEventRepo;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @GetMapping("/org/{orgId}")
     public List<Reservation> getByOrg(@PathVariable UUID orgId) {
@@ -38,29 +46,27 @@ public class ReservationController {
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody CreateReservationRequest req) {
-        var bundle = bundleRepo.findById(req.postingId).orElse(null);
+        var bundle = bundleRepo.findById(req.getPostingId()).orElse(null);
         if (bundle == null) return ResponseEntity.notFound().build();
 
-        int qty = req.quantity != null ? req.quantity : 1;
+        int qty = req.getQuantity() != null ? req.getQuantity() : 1;
         if (!bundle.canReserve(qty)) {
             return ResponseEntity.badRequest().body("Not enough bundles available");
         }
 
-        var org = orgRepo.findById(req.organisationId).orElse(null);
-        var employee = req.employeeId != null ? employeeRepo.findById(req.employeeId).orElse(null) : null;
+        var org = orgRepo.findById(req.getOrganisationId()).orElse(null);
+        var employee = req.getEmployeeId() != null ? employeeRepo.findById(req.getEmployeeId()).orElse(null) : null;
 
-        // Generate claim code
         String claimCode = generateClaimCode();
         String claimCodeHash = passwordEncoder.encode(claimCode);
         String claimCodeLast4 = claimCode.substring(claimCode.length() - 4);
 
-        var reservation = Reservation.builder()
-                .posting(bundle)
-                .organisation(org)
-                .employee(employee)
-                .claimCodeHash(claimCodeHash)
-                .claimCodeLast4(claimCodeLast4)
-                .build();
+        Reservation reservation = new Reservation();
+        reservation.setPosting(bundle);
+        reservation.setOrganisation(org);
+        reservation.setEmployee(employee);
+        reservation.setClaimCodeHash(claimCodeHash);
+        reservation.setClaimCodeLast4(claimCodeLast4);
 
         bundle.setQuantityReserved(bundle.getQuantityReserved() + qty);
         bundleRepo.save(bundle);
@@ -69,7 +75,7 @@ public class ReservationController {
 
         return ResponseEntity.ok(new ReservationResponse(
                 saved.getReservationId(),
-                claimCode, // Only returned once!
+                claimCode,
                 claimCodeLast4,
                 bundle.getPickupStartAt(),
                 bundle.getPickupEndAt(),
@@ -77,7 +83,6 @@ public class ReservationController {
                 bundle.getSeller().getLocationText()
         ));
     }
-    
 
     @PostMapping("/{id}/verify")
     public ResponseEntity<?> verify(@PathVariable UUID id, @RequestBody VerifyRequest req) {
@@ -88,32 +93,27 @@ public class ReservationController {
             return ResponseEntity.badRequest().body("Reservation not in RESERVED status");
         }
 
-        if (!passwordEncoder.matches(req.claimCode, reservation.getClaimCodeHash())) {
+        if (!passwordEncoder.matches(req.getClaimCode(), reservation.getClaimCodeHash())) {
             return ResponseEntity.badRequest().body("Invalid claim code");
         }
 
-        // Mark as collected
         reservation.setStatus(Reservation.Status.COLLECTED);
         reservation.setCollectedAt(Instant.now());
         reservationRepo.save(reservation);
 
-        // Create rescue event if employee assigned
         if (reservation.getEmployee() != null) {
             var employee = reservation.getEmployee();
             var bundle = reservation.getPosting();
-            
-            // Create rescue event
-            var event = RescueEvent.builder()
-                    .employee(employee)
-                    .reservation(reservation)
-                    .collectedAt(Instant.now())
-                    .mealsEstimate(1) // Simplified
-                    .co2eEstimateGrams(bundle.getEstimatedWeightGrams() != null ? 
-                            (int)(bundle.getEstimatedWeightGrams() * 2.5) : 500)
-                    .build();
+
+            RescueEvent event = new RescueEvent();
+            event.setEmployee(employee);
+            event.setReservation(reservation);
+            event.setCollectedAt(Instant.now());
+            event.setMealsEstimate(1);
+            event.setCo2eEstimateGrams(bundle.getEstimatedWeightGrams() != null ?
+                    (int)(bundle.getEstimatedWeightGrams() * 2.5) : 500);
             rescueEventRepo.save(event);
 
-            // Update streak
             updateStreak(employee);
         }
 
@@ -127,8 +127,7 @@ public class ReservationController {
 
         reservation.setStatus(Reservation.Status.NO_SHOW);
         reservation.setNoShowMarkedAt(Instant.now());
-        
-        // Release the bundle quantity
+
         var bundle = reservation.getPosting();
         bundle.setQuantityReserved(bundle.getQuantityReserved() - 1);
         bundleRepo.save(bundle);
@@ -146,7 +145,7 @@ public class ReservationController {
         }
 
         reservation.setStatus(Reservation.Status.CANCELLED);
-        
+
         var bundle = reservation.getPosting();
         bundle.setQuantityReserved(bundle.getQuantityReserved() - 1);
         bundleRepo.save(bundle);
@@ -184,10 +183,8 @@ public class ReservationController {
         } else if (employee.getLastRescueWeekStart().equals(weekStart)) {
             // Same week, no change
         } else if (employee.getLastRescueWeekStart().plusWeeks(1).equals(weekStart)) {
-            // Consecutive week
             employee.setCurrentStreakWeeks(employee.getCurrentStreakWeeks() + 1);
         } else {
-            // Streak broken
             employee.setCurrentStreakWeeks(1);
         }
 
@@ -200,72 +197,84 @@ public class ReservationController {
 
     // DTOs
     public static class CreateReservationRequest {
-        UUID postingId;
-        UUID organisationId;
-        UUID employeeId;
-        Integer quantity;
+        private UUID postingId;
+        private UUID organisationId;
+        private UUID employeeId;
+        private Integer quantity;
 
-		/// Getters
+        public CreateReservationRequest() {}
+
         public UUID getPostingId() { return postingId; }
-        public UUID getOrganisationId() { return organisationId; }
-        public UUID getEmployeeId() { return employeeId; }
-        public Integer getQuantity() { return quantity; }
-
-        // Setters
         public void setPostingId(UUID postingId) { this.postingId = postingId; }
+        public UUID getOrganisationId() { return organisationId; }
         public void setOrganisationId(UUID organisationId) { this.organisationId = organisationId; }
+        public UUID getEmployeeId() { return employeeId; }
         public void setEmployeeId(UUID employeeId) { this.employeeId = employeeId; }
+        public Integer getQuantity() { return quantity; }
         public void setQuantity(Integer quantity) { this.quantity = quantity; }
     }
 
     public static class ReservationResponse {
-        UUID reservationId;
-        String claimCode;
-        String claimCodeLast4;
-        Instant pickupStartAt;
-        Instant pickupEndAt;
-        String sellerName;
-        String sellerLocation;
+        private UUID reservationId;
+        private String claimCode;
+        private String claimCodeLast4;
+        private Instant pickupStartAt;
+        private Instant pickupEndAt;
+        private String sellerName;
+        private String sellerLocation;
 
-		/// Getters
+        public ReservationResponse() {}
+
+        public ReservationResponse(UUID reservationId, String claimCode, String claimCodeLast4,
+                                    Instant pickupStartAt, Instant pickupEndAt, String sellerName, String sellerLocation) {
+            this.reservationId = reservationId;
+            this.claimCode = claimCode;
+            this.claimCodeLast4 = claimCodeLast4;
+            this.pickupStartAt = pickupStartAt;
+            this.pickupEndAt = pickupEndAt;
+            this.sellerName = sellerName;
+            this.sellerLocation = sellerLocation;
+        }
+
         public UUID getReservationId() { return reservationId; }
-        public String getClaimCode() { return claimCode; }
-        public String getClaimCodeLast4() { return claimCodeLast4; }
-        public Instant getPickupStartAt() { return pickupStartAt; }
-        public Instant getPickupEndAt() { return pickupEndAt; }
-        public String getSellerName() { return sellerName; }
-        public String getSellerLocation() { return sellerLocation; }
-
-        // Setters
         public void setReservationId(UUID reservationId) { this.reservationId = reservationId; }
+        public String getClaimCode() { return claimCode; }
         public void setClaimCode(String claimCode) { this.claimCode = claimCode; }
+        public String getClaimCodeLast4() { return claimCodeLast4; }
         public void setClaimCodeLast4(String claimCodeLast4) { this.claimCodeLast4 = claimCodeLast4; }
+        public Instant getPickupStartAt() { return pickupStartAt; }
         public void setPickupStartAt(Instant pickupStartAt) { this.pickupStartAt = pickupStartAt; }
+        public Instant getPickupEndAt() { return pickupEndAt; }
         public void setPickupEndAt(Instant pickupEndAt) { this.pickupEndAt = pickupEndAt; }
+        public String getSellerName() { return sellerName; }
         public void setSellerName(String sellerName) { this.sellerName = sellerName; }
+        public String getSellerLocation() { return sellerLocation; }
         public void setSellerLocation(String sellerLocation) { this.sellerLocation = sellerLocation; }
     }
 
     public static class VerifyRequest {
-        String claimCode;
+        private String claimCode;
 
-		// Getter
+        public VerifyRequest() {}
+
         public String getClaimCode() { return claimCode; }
-
-        // Setter
         public void setClaimCode(String claimCode) { this.claimCode = claimCode; }
     }
 
     public static class VerifyResponse {
-        boolean success;
-        String message;
+        private boolean success;
+        private String message;
 
-		/// Getters
+        public VerifyResponse() {}
+
+        public VerifyResponse(boolean success, String message) {
+            this.success = success;
+            this.message = message;
+        }
+
         public boolean isSuccess() { return success; }
-        public String getMessage() { return message; }
-
-        // Setters
         public void setSuccess(boolean success) { this.success = success; }
+        public String getMessage() { return message; }
         public void setMessage(String message) { this.message = message; }
     }
 }

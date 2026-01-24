@@ -5,7 +5,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "category")
- @Builder
+ 
 public class Category {
 
     @Id

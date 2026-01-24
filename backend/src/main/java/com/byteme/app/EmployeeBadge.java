@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "employee_badge")
- @Builder
+ 
 @IdClass(EmployeeBadge.Key.class)
 public class EmployeeBadge {
 

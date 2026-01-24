@@ -12,12 +12,17 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/bundles")
-@RequiredArgsConstructor
 public class BundleController {
 
     private final BundlePostingRepository bundleRepo;
     private final SellerRepository sellerRepo;
     private final CategoryRepository categoryRepo;
+
+    public BundleController(BundlePostingRepository bundleRepo, SellerRepository sellerRepo, CategoryRepository categoryRepo) {
+        this.bundleRepo = bundleRepo;
+        this.sellerRepo = sellerRepo;
+        this.categoryRepo = categoryRepo;
+    }
 
     @GetMapping
     public Page<BundlePosting> getAvailable(Pageable pageable) {
@@ -42,19 +47,21 @@ public class BundleController {
         var seller = sellerRepo.findByUser_UserId(userId)
                 .orElseThrow(() -> new RuntimeException("Not a seller"));
 
-        var bundle = BundlePosting.builder()
-                .seller(seller)
-                .category(req.categoryId != null ? categoryRepo.findById(req.categoryId).orElse(null) : null)
-                .pickupStartAt(req.pickupStartAt)
-                .pickupEndAt(req.pickupEndAt)
-                .quantityTotal(req.quantityTotal)
-                .priceCents(req.priceCents)
-                .discountPct(req.discountPct)
-                .contentsText(req.contentsText)
-                .allergensText(req.allergensText)
-                .estimatedWeightGrams(req.estimatedWeightGrams)
-                .status(req.activate ? BundlePosting.Status.ACTIVE : BundlePosting.Status.DRAFT)
-                .build();
+        BundlePosting bundle = new BundlePosting();
+        bundle.setSeller(seller);
+        if (req.getCategoryId() != null) {
+            bundle.setCategory(categoryRepo.findById(req.getCategoryId()).orElse(null));
+        }
+        bundle.setPickupStartAt(req.getPickupStartAt());
+        bundle.setPickupEndAt(req.getPickupEndAt());
+        bundle.setQuantityTotal(req.getQuantityTotal());
+        bundle.setQuantityReserved(0);
+        bundle.setPriceCents(req.getPriceCents());
+        bundle.setDiscountPct(req.getDiscountPct());
+        bundle.setContentsText(req.getContentsText());
+        bundle.setAllergensText(req.getAllergensText());
+        bundle.setEstimatedWeightGrams(req.getEstimatedWeightGrams());
+        bundle.setStatus(req.isActivate() ? BundlePosting.Status.ACTIVE : BundlePosting.Status.DRAFT);
 
         return ResponseEntity.ok(bundleRepo.save(bundle));
     }
@@ -64,17 +71,16 @@ public class BundleController {
         var bundle = bundleRepo.findById(id).orElse(null);
         if (bundle == null) return ResponseEntity.notFound().build();
 
-        // Verify ownership
         UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!bundle.getSeller().getUser().getUserId().equals(userId)) {
             return ResponseEntity.status(403).body("Not your bundle");
         }
 
-        if (req.quantityTotal != null) bundle.setQuantityTotal(req.quantityTotal);
-        if (req.priceCents != null) bundle.setPriceCents(req.priceCents);
-        if (req.discountPct != null) bundle.setDiscountPct(req.discountPct);
-        if (req.contentsText != null) bundle.setContentsText(req.contentsText);
-        if (req.allergensText != null) bundle.setAllergensText(req.allergensText);
+        if (req.getQuantityTotal() != null) bundle.setQuantityTotal(req.getQuantityTotal());
+        if (req.getPriceCents() != null) bundle.setPriceCents(req.getPriceCents());
+        if (req.getDiscountPct() != null) bundle.setDiscountPct(req.getDiscountPct());
+        if (req.getContentsText() != null) bundle.setContentsText(req.getContentsText());
+        if (req.getAllergensText() != null) bundle.setAllergensText(req.getAllergensText());
 
         return ResponseEntity.ok(bundleRepo.save(bundle));
     }
@@ -97,61 +103,59 @@ public class BundleController {
 
     // DTOs
     public static class CreateBundleRequest {
-        UUID categoryId;
-        Instant pickupStartAt;
-        Instant pickupEndAt;
-        Integer quantityTotal;
-        Integer priceCents;
-        Integer discountPct;
-        String contentsText;
-        String allergensText;
-        Integer estimatedWeightGrams;
-        boolean activate;
+        private UUID categoryId;
+        private Instant pickupStartAt;
+        private Instant pickupEndAt;
+        private Integer quantityTotal;
+        private Integer priceCents;
+        private Integer discountPct;
+        private String contentsText;
+        private String allergensText;
+        private Integer estimatedWeightGrams;
+        private boolean activate;
 
-		/// Getters
+        public CreateBundleRequest() {}
+
         public UUID getCategoryId() { return categoryId; }
-        public Instant getPickupStartAt() { return pickupStartAt; }
-        public Instant getPickupEndAt() { return pickupEndAt; }
-        public Integer getQuantityTotal() { return quantityTotal; }
-        public Integer getPriceCents() { return priceCents; }
-        public Integer getDiscountPct() { return discountPct; }
-        public String getContentsText() { return contentsText; }
-        public String getAllergensText() { return allergensText; }
-        public Integer getEstimatedWeightGrams() { return estimatedWeightGrams; }
-        public boolean isActivate() { return activate; }
-
-        // Setters
         public void setCategoryId(UUID categoryId) { this.categoryId = categoryId; }
+        public Instant getPickupStartAt() { return pickupStartAt; }
         public void setPickupStartAt(Instant pickupStartAt) { this.pickupStartAt = pickupStartAt; }
+        public Instant getPickupEndAt() { return pickupEndAt; }
         public void setPickupEndAt(Instant pickupEndAt) { this.pickupEndAt = pickupEndAt; }
+        public Integer getQuantityTotal() { return quantityTotal; }
         public void setQuantityTotal(Integer quantityTotal) { this.quantityTotal = quantityTotal; }
+        public Integer getPriceCents() { return priceCents; }
         public void setPriceCents(Integer priceCents) { this.priceCents = priceCents; }
+        public Integer getDiscountPct() { return discountPct; }
         public void setDiscountPct(Integer discountPct) { this.discountPct = discountPct; }
+        public String getContentsText() { return contentsText; }
         public void setContentsText(String contentsText) { this.contentsText = contentsText; }
+        public String getAllergensText() { return allergensText; }
         public void setAllergensText(String allergensText) { this.allergensText = allergensText; }
+        public Integer getEstimatedWeightGrams() { return estimatedWeightGrams; }
         public void setEstimatedWeightGrams(Integer estimatedWeightGrams) { this.estimatedWeightGrams = estimatedWeightGrams; }
+        public boolean isActivate() { return activate; }
         public void setActivate(boolean activate) { this.activate = activate; }
     }
 
     public static class UpdateBundleRequest {
-        Integer quantityTotal;
-        Integer priceCents;
-        Integer discountPct;
-        String contentsText;
-        String allergensText;
+        private Integer quantityTotal;
+        private Integer priceCents;
+        private Integer discountPct;
+        private String contentsText;
+        private String allergensText;
 
-		/// Getters
+        public UpdateBundleRequest() {}
+
         public Integer getQuantityTotal() { return quantityTotal; }
-        public Integer getPriceCents() { return priceCents; }
-        public Integer getDiscountPct() { return discountPct; }
-        public String getContentsText() { return contentsText; }
-        public String getAllergensText() { return allergensText; }
-
-        // Setters
         public void setQuantityTotal(Integer quantityTotal) { this.quantityTotal = quantityTotal; }
+        public Integer getPriceCents() { return priceCents; }
         public void setPriceCents(Integer priceCents) { this.priceCents = priceCents; }
+        public Integer getDiscountPct() { return discountPct; }
         public void setDiscountPct(Integer discountPct) { this.discountPct = discountPct; }
+        public String getContentsText() { return contentsText; }
         public void setContentsText(String contentsText) { this.contentsText = contentsText; }
+        public String getAllergensText() { return allergensText; }
         public void setAllergensText(String allergensText) { this.allergensText = allergensText; }
     }
 }

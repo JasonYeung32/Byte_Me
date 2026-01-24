@@ -9,7 +9,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
     private final UserAccountRepository userRepo;
@@ -18,26 +17,32 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+    public AuthController(UserAccountRepository userRepo, SellerRepository sellerRepo, 
+                          EmployeeRepository employeeRepo, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+        this.userRepo = userRepo;
+        this.sellerRepo = sellerRepo;
+        this.employeeRepo = employeeRepo;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+    }
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
-        if (userRepo.existsByEmail(req.email)) {
+        if (userRepo.existsByEmail(req.getEmail())) {
             return ResponseEntity.badRequest().body("Email already exists");
         }
 
-        var user = UserAccount.builder()
-                .email(req.email)
-                .passwordHash(passwordEncoder.encode(req.password))
-                .role(req.role)
-                .build();
+        UserAccount user = new UserAccount();
+        user.setEmail(req.getEmail());
+        user.setPasswordHash(passwordEncoder.encode(req.getPassword()));
+        user.setRole(req.getRole());
         userRepo.save(user);
 
-        // Create seller profile if SELLER role
-        if (req.role == UserAccount.Role.SELLER && req.businessName != null) {
-            var seller = Seller.builder()
-                    .user(user)
-                    .name(req.businessName)
-                    .locationText(req.location)
-                    .build();
+        if (req.getRole() == UserAccount.Role.SELLER && req.getBusinessName() != null) {
+            Seller seller = new Seller();
+            seller.setUser(user);
+            seller.setName(req.getBusinessName());
+            seller.setLocationText(req.getLocation());
             sellerRepo.save(seller);
         }
 
@@ -47,10 +52,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-        var user = userRepo.findByEmail(req.email)
-                .orElse(null);
+        var user = userRepo.findByEmail(req.getEmail()).orElse(null);
         
-        if (user == null || !passwordEncoder.matches(req.password, user.getPasswordHash())) {
+        if (user == null || !passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
 
@@ -67,56 +71,60 @@ public class AuthController {
 
     // DTOs
     public static class RegisterRequest {
-        String email;
-        String password;
-        UserAccount.Role role;
-        String businessName; // for sellers
-        String location;     // for sellers
-		
-		/// Getters
-        public String getEmail() { return email; }
-        public String getPassword() { return password; }
-        public UserAccount.Role getRole() { return role; }
-        public String getBusinessName() { return businessName; }
-        public String getLocation() { return location; }
+        private String email;
+        private String password;
+        private UserAccount.Role role;
+        private String businessName;
+        private String location;
 
-        // Setters
+        public RegisterRequest() {}
+
+        public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
+        public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
+        public UserAccount.Role getRole() { return role; }
         public void setRole(UserAccount.Role role) { this.role = role; }
+        public String getBusinessName() { return businessName; }
         public void setBusinessName(String businessName) { this.businessName = businessName; }
+        public String getLocation() { return location; }
         public void setLocation(String location) { this.location = location; }
     }
 
     public static class LoginRequest {
-        String email;
-        String password;
-		
-		/// Getters
-        public String getEmail() { return email; }
-        public String getPassword() { return password; }
+        private String email;
+        private String password;
 
-        // Setters
+        public LoginRequest() {}
+
+        public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
+        public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
     }
 
     public static class AuthResponse {
-        String token;
-        UUID userId;
-        String email;
-        UserAccount.Role role;
+        private String token;
+        private UUID userId;
+        private String email;
+        private UserAccount.Role role;
 
-		/// Getters
+        public AuthResponse() {}
+
+        public AuthResponse(String token, UUID userId, String email, UserAccount.Role role) {
+            this.token = token;
+            this.userId = userId;
+            this.email = email;
+            this.role = role;
+        }
+
         public String getToken() { return token; }
-        public UUID getUserId() { return userId; }
-        public String getEmail() { return email; }
-        public UserAccount.Role getRole() { return role; }
-
-        // Setters
         public void setToken(String token) { this.token = token; }
+        public UUID getUserId() { return userId; }
         public void setUserId(UUID userId) { this.userId = userId; }
+        public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
+        public UserAccount.Role getRole() { return role; }
         public void setRole(UserAccount.Role role) { this.role = role; }
     }
 }
