@@ -2,5 +2,5 @@
 export type User =
 {
     id: string;
-    role: "SELLER" | "ORG_ADMIN" | "EMPLOYEE" | "MAINTAINER";
+    role: "SELLER" | "ORG" | "MAINTAINER";
 };
