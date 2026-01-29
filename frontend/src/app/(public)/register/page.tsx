@@ -21,7 +21,6 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSeller, setIsSeller] = useState(false);
 
   // for role based login
   const [checked, setChecked] = useState(false);
@@ -55,7 +54,7 @@ export default function RegisterPage() {
       email,
       password,
       name,
-      isSeller,
+      callbackURL: getReRoute(checked),
     });
 
     setLoading(false);
@@ -69,7 +68,7 @@ export default function RegisterPage() {
     setSuccess(true);
 
     // optional redirect
-    // window.location.href = getReRoute(checked);
+    // window.location.href = data?.user?.callbackURL ?? "";
   }
 
   return (
@@ -128,8 +127,8 @@ export default function RegisterPage() {
             <label className="checkbox-label">
               <input
                 type="checkbox"
-                checked={isSeller}
-                onChange={(e) => setIsSeller(e.target.checked)}
+                checked={checked}
+                onChange={(e) => setChecked(e.target.checked)}
                 className="checkbox"
               />
               <span>I am a seller</span>
