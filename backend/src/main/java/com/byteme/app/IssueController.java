@@ -12,13 +12,13 @@ import java.util.UUID;
 public class IssueController {
 
     private final IssueReportRepository issueRepo;
-    private final OrgOrderRepository orderRepo;
+    private final ReservationRepository reservationRepo;
     private final OrganisationRepository orgRepo;
 
-    public IssueController(IssueReportRepository issueRepo, OrgOrderRepository orderRepo,
+    public IssueController(IssueReportRepository issueRepo, ReservationRepository reservationRepo,
                            OrganisationRepository orgRepo) {
         this.issueRepo = issueRepo;
-        this.orderRepo = orderRepo;
+        this.reservationRepo = reservationRepo;
         this.orgRepo = orgRepo;
     }
 
@@ -41,8 +41,8 @@ public class IssueController {
     public ResponseEntity<?> create(@RequestBody CreateIssueRequest req) {
         IssueReport issue = new IssueReport();
 
-        if (req.getOrderId() != null) {
-            issue.setOrder(orderRepo.findById(req.getOrderId()).orElse(null));
+        if (req.getReservationId() != null) {
+            issue.setReservation(reservationRepo.findById(req.getReservationId()).orElse(null));
         }
         if (req.getOrgId() != null) {
             issue.setOrganisation(orgRepo.findById(req.getOrgId()).orElse(null));
@@ -83,13 +83,13 @@ public class IssueController {
 
     // DTOs
     public static class CreateIssueRequest {
-        private UUID orderId;
+        private UUID reservationId;
         private UUID orgId;
         private IssueReport.Type type;
         private String description;
 
-        public UUID getOrderId() { return orderId; }
-        public void setOrderId(UUID orderId) { this.orderId = orderId; }
+        public UUID getReservationId() { return reservationId; }
+        public void setReservationId(UUID reservationId) { this.reservationId = reservationId; }
         public UUID getOrgId() { return orgId; }
         public void setOrgId(UUID orgId) { this.orgId = orgId; }
         public IssueReport.Type getType() { return type; }

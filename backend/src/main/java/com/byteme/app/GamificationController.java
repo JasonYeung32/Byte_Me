@@ -12,14 +12,17 @@ import java.util.UUID;
 public class GamificationController {
 
     private final OrganisationRepository orgRepo;
-    private final OrgOrderRepository orderRepo;
+    private final OrganisationStreakCacheRepository streakRepo;
+    private final ReservationRepository reservationRepo;
     private final BadgeRepository badgeRepo;
     private final OrganisationBadgeRepository orgBadgeRepo;
 
-    public GamificationController(OrganisationRepository orgRepo, OrgOrderRepository orderRepo,
-                                   BadgeRepository badgeRepo, OrganisationBadgeRepository orgBadgeRepo) {
+    public GamificationController(OrganisationRepository orgRepo, OrganisationStreakCacheRepository streakRepo,
+                                   ReservationRepository reservationRepo, BadgeRepository badgeRepo,
+                                   OrganisationBadgeRepository orgBadgeRepo) {
         this.orgRepo = orgRepo;
-        this.orderRepo = orderRepo;
+        this.streakRepo = streakRepo;
+        this.reservationRepo = reservationRepo;
         this.badgeRepo = badgeRepo;
         this.orgBadgeRepo = orgBadgeRepo;
     }
@@ -29,10 +32,15 @@ public class GamificationController {
         var org = orgRepo.findById(orgId).orElse(null);
         if (org == null) return ResponseEntity.notFound().build();
 
+        var streak = streakRepo.findById(orgId).orElse(null);
+        if (streak == null) {
+            return ResponseEntity.ok(new StreakResponse(0, 0, null));
+        }
+
         return ResponseEntity.ok(new StreakResponse(
-                org.getCurrentStreakWeeks(),
-                org.getBestStreakWeeks(),
-                org.getLastOrderWeekStart()
+                streak.getCurrentStreakWeeks(),
+                streak.getBestStreakWeeks(),
+                streak.getLastRescueWeekStart()
         ));
     }
 
@@ -41,12 +49,17 @@ public class GamificationController {
         var org = orgRepo.findById(orgId).orElse(null);
         if (org == null) return ResponseEntity.notFound().build();
 
+        var streak = streakRepo.findById(orgId).orElse(null);
         int badgeCount = orgBadgeRepo.findByOrgId(orgId).size();
+        int totalReservations = reservationRepo.findByOrganisationOrgId(orgId).size();
+
+        int currentStreak = streak != null ? streak.getCurrentStreakWeeks() : 0;
+        int bestStreak = streak != null ? streak.getBestStreakWeeks() : 0;
 
         return ResponseEntity.ok(new StatsResponse(
-                org.getTotalOrders(),
-                org.getCurrentStreakWeeks(),
-                org.getBestStreakWeeks(),
+                totalReservations,
+                currentStreak,
+                bestStreak,
                 badgeCount
         ));
     }
@@ -65,33 +78,33 @@ public class GamificationController {
     public static class StreakResponse {
         private int currentStreakWeeks;
         private int bestStreakWeeks;
-        private LocalDate lastOrderWeekStart;
+        private LocalDate lastRescueWeekStart;
 
-        public StreakResponse(int currentStreakWeeks, int bestStreakWeeks, LocalDate lastOrderWeekStart) {
+        public StreakResponse(int currentStreakWeeks, int bestStreakWeeks, LocalDate lastRescueWeekStart) {
             this.currentStreakWeeks = currentStreakWeeks;
             this.bestStreakWeeks = bestStreakWeeks;
-            this.lastOrderWeekStart = lastOrderWeekStart;
+            this.lastRescueWeekStart = lastRescueWeekStart;
         }
 
         public int getCurrentStreakWeeks() { return currentStreakWeeks; }
         public int getBestStreakWeeks() { return bestStreakWeeks; }
-        public LocalDate getLastOrderWeekStart() { return lastOrderWeekStart; }
+        public LocalDate getLastRescueWeekStart() { return lastRescueWeekStart; }
     }
 
     public static class StatsResponse {
-        private int totalOrders;
+        private int totalReservations;
         private int currentStreakWeeks;
         private int bestStreakWeeks;
         private int badgesEarned;
 
-        public StatsResponse(int totalOrders, int currentStreakWeeks, int bestStreakWeeks, int badgesEarned) {
-            this.totalOrders = totalOrders;
+        public StatsResponse(int totalReservations, int currentStreakWeeks, int bestStreakWeeks, int badgesEarned) {
+            this.totalReservations = totalReservations;
             this.currentStreakWeeks = currentStreakWeeks;
             this.bestStreakWeeks = bestStreakWeeks;
             this.badgesEarned = badgesEarned;
         }
 
-        public int getTotalOrders() { return totalOrders; }
+        public int getTotalReservations() { return totalReservations; }
         public int getCurrentStreakWeeks() { return currentStreakWeeks; }
         public int getBestStreakWeeks() { return bestStreakWeeks; }
         public int getBadgesEarned() { return badgesEarned; }

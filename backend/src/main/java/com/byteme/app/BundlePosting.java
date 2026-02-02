@@ -22,11 +22,17 @@ public class BundlePosting {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "window_id")
+    private PickupWindow window;
+
     @Column(nullable = false)
     private String title;
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    private String allergensText;
 
     @Column(nullable = false)
     private Instant pickupStartAt;
@@ -46,7 +52,7 @@ public class BundlePosting {
     @Column(nullable = false)
     private Integer discountPct = 0;
 
-    private String allergensText;
+    private Integer estimatedWeightGrams;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -68,15 +74,17 @@ public class BundlePosting {
     public UUID getPostingId() { return postingId; }
     public Seller getSeller() { return seller; }
     public Category getCategory() { return category; }
+    public PickupWindow getWindow() { return window; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
+    public String getAllergensText() { return allergensText; }
     public Instant getPickupStartAt() { return pickupStartAt; }
     public Instant getPickupEndAt() { return pickupEndAt; }
     public Integer getQuantityTotal() { return quantityTotal; }
     public Integer getQuantityReserved() { return quantityReserved; }
     public Integer getPriceCents() { return priceCents; }
     public Integer getDiscountPct() { return discountPct; }
-    public String getAllergensText() { return allergensText; }
+    public Integer getEstimatedWeightGrams() { return estimatedWeightGrams; }
     public Status getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
 
@@ -84,14 +92,16 @@ public class BundlePosting {
     public void setPostingId(UUID postingId) { this.postingId = postingId; }
     public void setSeller(Seller seller) { this.seller = seller; }
     public void setCategory(Category category) { this.category = category; }
+    public void setWindow(PickupWindow window) { this.window = window; }
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
+    public void setAllergensText(String allergensText) { this.allergensText = allergensText; }
     public void setPickupStartAt(Instant pickupStartAt) { this.pickupStartAt = pickupStartAt; }
     public void setPickupEndAt(Instant pickupEndAt) { this.pickupEndAt = pickupEndAt; }
     public void setQuantityTotal(Integer quantityTotal) { this.quantityTotal = quantityTotal; }
     public void setQuantityReserved(Integer quantityReserved) { this.quantityReserved = quantityReserved; }
     public void setPriceCents(Integer priceCents) { this.priceCents = priceCents; }
     public void setDiscountPct(Integer discountPct) { this.discountPct = discountPct; }
-    public void setAllergensText(String allergensText) { this.allergensText = allergensText; }
+    public void setEstimatedWeightGrams(Integer estimatedWeightGrams) { this.estimatedWeightGrams = estimatedWeightGrams; }
     public void setStatus(Status status) { this.status = status; }
 }

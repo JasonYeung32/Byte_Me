@@ -16,8 +16,8 @@ public class IssueReport {
     private UUID issueId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
-    private OrgOrder order;
+    @JoinColumn(name = "reservation_id")
+    private Reservation reservation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "org_id")
@@ -44,7 +44,7 @@ public class IssueReport {
 
     // Getters
     public UUID getIssueId() { return issueId; }
-    public OrgOrder getOrder() { return order; }
+    public Reservation getReservation() { return reservation; }
     public Organisation getOrganisation() { return organisation; }
     public Type getType() { return type; }
     public String getDescription() { return description; }
@@ -55,7 +55,7 @@ public class IssueReport {
 
     // Setters
     public void setIssueId(UUID issueId) { this.issueId = issueId; }
-    public void setOrder(OrgOrder order) { this.order = order; }
+    public void setReservation(Reservation reservation) { this.reservation = reservation; }
     public void setOrganisation(Organisation organisation) { this.organisation = organisation; }
     public void setType(Type type) { this.type = type; }
     public void setDescription(String description) { this.description = description; }

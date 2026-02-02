@@ -10,14 +10,14 @@ import java.util.UUID;
 public class AnalyticsController {
 
     private final BundlePostingRepository bundleRepo;
-    private final OrgOrderRepository orderRepo;
+    private final ReservationRepository reservationRepo;
     private final IssueReportRepository issueRepo;
     private final SellerRepository sellerRepo;
 
-    public AnalyticsController(BundlePostingRepository bundleRepo, OrgOrderRepository orderRepo,
+    public AnalyticsController(BundlePostingRepository bundleRepo, ReservationRepository reservationRepo,
                                 IssueReportRepository issueRepo, SellerRepository sellerRepo) {
         this.bundleRepo = bundleRepo;
-        this.orderRepo = orderRepo;
+        this.reservationRepo = reservationRepo;
         this.issueRepo = issueRepo;
         this.sellerRepo = sellerRepo;
     }
@@ -28,14 +28,14 @@ public class AnalyticsController {
         if (seller == null) return ResponseEntity.notFound().build();
 
         var bundles = bundleRepo.findBySeller_SellerId(sellerId);
-        var orders = orderRepo.findByPostingSellerSellerId(sellerId);
+        var reservations = reservationRepo.findByPostingSellerSellerId(sellerId);
 
         int totalPosted = bundles.size();
         int totalQuantity = bundles.stream().mapToInt(BundlePosting::getQuantityTotal).sum();
 
-        long collectedCount = orders.stream().filter(o -> o.getStatus() == OrgOrder.Status.COLLECTED).count();
-        long cancelledCount = orders.stream().filter(o -> o.getStatus() == OrgOrder.Status.CANCELLED).count();
-        long expiredCount = orders.stream().filter(o -> o.getStatus() == OrgOrder.Status.EXPIRED).count();
+        long collectedCount = reservations.stream().filter(r -> r.getStatus() == Reservation.Status.COLLECTED).count();
+        long cancelledCount = reservations.stream().filter(r -> r.getStatus() == Reservation.Status.CANCELLED).count();
+        long expiredCount = reservations.stream().filter(r -> r.getStatus() == Reservation.Status.EXPIRED).count();
 
         double sellThrough = totalQuantity > 0 ? (double) collectedCount / totalQuantity * 100 : 0;
         int openIssues = issueRepo.findOpenBySeller(sellerId).size();
@@ -48,11 +48,11 @@ public class AnalyticsController {
 
     @GetMapping("/sell-through/{sellerId}")
     public ResponseEntity<?> getSellThrough(@PathVariable UUID sellerId) {
-        var orders = orderRepo.findByPostingSellerSellerId(sellerId);
+        var reservations = reservationRepo.findByPostingSellerSellerId(sellerId);
 
-        long collected = orders.stream().filter(o -> o.getStatus() == OrgOrder.Status.COLLECTED).count();
-        long cancelled = orders.stream().filter(o -> o.getStatus() == OrgOrder.Status.CANCELLED).count();
-        long expired = orders.stream().filter(o -> o.getStatus() == OrgOrder.Status.EXPIRED).count();
+        long collected = reservations.stream().filter(r -> r.getStatus() == Reservation.Status.COLLECTED).count();
+        long cancelled = reservations.stream().filter(r -> r.getStatus() == Reservation.Status.CANCELLED).count();
+        long expired = reservations.stream().filter(r -> r.getStatus() == Reservation.Status.EXPIRED).count();
 
         long total = collected + cancelled + expired;
 
