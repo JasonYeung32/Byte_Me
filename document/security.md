@@ -15,7 +15,6 @@ This document describes the security design of the backend system, including JWT
 - `3.` If authentication succeeds, a JWT is generated using JwtUtil
 
 
-
 - `4.` The token is returned to the client
 
 **The JWT includes:**

@@ -1,0 +1,797 @@
+\documentclass[a4paper,11pt]{article}
+
+% ---------- Packages ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+
+\geometry{margin=1in}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+
+% ---------- Listings style ----------
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{codegray}{rgb}{0.4,0.4,0.4}
+
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=false,
+  numbers=left,
+  numberstyle=\tiny\color{codegray},
+  numbersep=8pt,
+  showstringspaces=false,
+  tabsize=2
+}
+\lstset{style=mystyle}
+
+\title{API Documentation (OpenAPI/Swagger)}
+
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+Local:
+\begin{lstlisting}
+Base URL: http://localhost:8080
+\end{lstlisting}
+
+\subsection*{Introduction}
+
+This API documentation describes the Byte Me backend REST API, generated via \textbf{OpenAPI/Swagger}. It explains how to call each endpoint using \texttt{curl}, along with request and response examples.
+
+Including these seven controllers:
+
+
+\begin{enumerate}
+    \setcounter{enumi}{1}
+    \item \textbf{auth-controller}
+    \item \textbf{bundle-controller}
+    \item \textbf{category-controller}
+    \item \textbf{order-controller}
+    \item \textbf{issue-controller}
+    \item \textbf{gamification-controller}
+    \item \textbf{AnalyticsController}
+\end{enumerate}
+
+
+
+
+
+
+\section{ AuthController (\texttt{/api/auth})}
+
+\subsection{Register}
+\textbf{POST} \texttt{/api/auth/register}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "seller@example.com",
+    "password": "password123",
+    "role": "SELLER",
+    "businessName": "ABC",
+    "location": "Exeter"
+  }'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection {Login}
+\textbf{POST} \texttt{/api/auth/login}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "seller@example.com",
+    "password": "password123"
+  }'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+
+\subsection{Current user}
+\textbf{GET} \texttt{/api/auth/me}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/auth/me' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\section{BundleController (\texttt{/api/bundles})}
+
+\subsection{List available bundles}
+\textbf{GET} \texttt{/api/bundles/{}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/bundles?page=0&size=1&sort=string' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{
+  "totalPages": 0,
+  "totalElements": 0,
+  "first": true,
+  "last": true,
+  "numberOfElements": 0,
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 0,
+    "paged": true,
+    "unpaged": true,
+    "offset": 0,
+    "sort": [
+      {
+        "direction": "string",
+        "nullHandling": "string",
+        "ascending": true,
+        "property": "string",
+        "ignoreCase": true
+      }
+    ]
+  },
+  "size": 0,
+  "content": [
+    {
+      "postingId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "seller": {
+        "sellerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "name": "string",
+        "locationText": "string",
+        "openingHoursText": "string",
+        "contactStub": "string",
+        "createdAt": "2026-01-30T23:29:45.182Z"
+      },
+      "category": {
+        "categoryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "name": "string"
+      },
+      "title": "string",
+      "description": "string",
+      "pickupStartAt": "2026-01-30T23:29:45.182Z",
+      "pickupEndAt": "2026-01-30T23:29:45.182Z",
+      "quantityTotal": 0,
+      "quantityReserved": 0,
+      "priceCents": 0,
+      "discountPct": 0,
+      "allergensText": "string",
+      "status": "DRAFT",
+      "createdAt": "2026-01-30T23:29:45.182Z",
+      "available": 0
+    }
+  ],
+  "number": 0,
+  "sort": [
+    {
+      "direction": "string",
+      "nullHandling": "string",
+      "ascending": true,
+      "property": "string",
+      "ignoreCase": true
+    }
+  ],
+  "empty": true
+}
+\end{lstlisting}
+
+\subsection{Get a bundle by id}
+\textbf{GET} \texttt{/api/bundles/\{id\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/bundles/23f45e89-8b5a-5c55-9df7-240d78a3ce15' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{
+  "postingId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "seller": {
+    "sellerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "name": "string",
+    "locationText": "string",
+    "openingHoursText": "string",
+    "contactStub": "string",
+    "createdAt": "2026-01-30T23:30:37.984Z"
+  },
+  "category": {
+    "categoryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "name": "string"
+  },
+  "title": "string",
+  "description": "string",
+  "pickupStartAt": "2026-01-30T23:30:37.984Z",
+  "pickupEndAt": "2026-01-30T23:30:37.984Z",
+  "quantityTotal": 0,
+  "quantityReserved": 0,
+  "priceCents": 0,
+  "discountPct": 0,
+  "allergensText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-01-30T23:30:37.984Z",
+  "available": 0
+}
+\end{lstlisting}
+
+\subsection{Create a bundle}
+\textbf{POST} \texttt{/api/bundles}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X POST http://localhost:8080/api/bundles \
+  -H "Authorization: Bearer <JWT>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "categoryId": "22222222-2222-2222-2222-222222222222",
+    "title": "Surprise Bag",
+    "description": "Random items",
+    "pickupStartAt": "2026-01-30T16:00:00Z",
+    "pickupEndAt": "2026-01-30T18:00:00Z",
+    "quantityTotal": 10,
+    "priceCents": 599,
+    "discountPct": 50,
+    "allergensText": "gluten",
+    "activate": true
+  }'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Update a bundle}
+\textbf{PUT} \texttt{/api/bundles/\{id\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X PUT http://localhost:8080/api/bundles/3fa85f64-5717-4562-b3fc-2c963f66afa6 \
+  -H "accept: */*" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Updated title",
+    "description": "Updated description",
+    "quantityTotal": 12,
+    "priceCents": 499,
+    "discountPct": 60,
+    "allergensText": "gluten"
+  }'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Activate a bundle}
+\textbf{POST} \texttt{/api/bundles/\{id\}/activate}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X POST http://localhost:8080/api/bundles/3fa85f64-5717-4562-b3fc-2c963f66afa6/activate \
+  -H "accept: */*"
+\end{lstlisting}
+
+\subsubsection*{Example Response (200 OK)}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Close a bundle}
+\textbf{POST} \texttt{/api/bundles/\{id\}/close}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'POST' \
+  'http://localhost:8080/api/bundles/23f45e89-8b5a-5c55-9df7-240d78a3ce15/close' \
+  -H 'accept: */*' \
+  -d ''
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{List bundles by seller}
+\textbf{GET} \texttt{/api/bundles/seller/\{sellerId\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/bundles/seller/23f45e89-8b5a-5c55-9df7-240d78a3ce14' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+[
+  {
+    "postingId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "seller": {
+      "sellerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "ABC",
+      "locationText": "Exeter",
+      "openingHoursText": "string",
+      "contactStub": "string",
+      "createdAt": "2026-01-30T17:54:04.890Z"
+    },
+    "category": {
+      "categoryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "food"
+    },
+    "title": "string",
+    "description": "string",
+    "pickupStartAt": "2026-01-30T17:54:04.890Z",
+    "pickupEndAt": "2026-01-30T17:54:04.890Z",
+    "quantityTotal": 0,
+    "quantityReserved": 0,
+    "priceCents": 0,
+    "discountPct": 0,
+    "allergensText": "gluten",
+    "status": "DRAFT",
+    "createdAt": "2026-01-30T17:54:04.890Z",
+    "available": 0
+  }
+]
+\end{lstlisting}
+
+\section{CategoryController (\texttt{/api/categories})}
+
+\subsection{List categories}
+\textbf{GET} \texttt{/api/categories}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/categories' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+[
+  { "categoryId": "22222222-2222-2222-2222-222222222222", 
+    "name": "Bakery" 
+  }
+]
+\end{lstlisting}
+
+\section{OrderController (\texttt{/api/orders})}
+
+\subsection{Create order}
+\textbf{POST} \texttt{/api/orders}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X POST http://localhost:8080/api/orders \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "postingId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "orgId": "44444444-4444-4444-4444-444444444444",
+    "quantity": 2
+  }'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Cancel order}
+\textbf{POST} \texttt{/api/orders/\{id\}/cancel}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'POST' \
+  'http://localhost:8080/api/orders/23f45e89-8b5a-5c55-9df7-240d78a3ce15/cancel' \
+  -H 'accept: */*' \
+  -d ''
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Collect order}
+\textbf{POST} \texttt{/api/orders/\{id\}/collect}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'POST' \
+  'http://localhost:8080/api/orders/23f45e89-8b5a-5c55-9df7-240d78a3ce15/collect' \
+  -H 'accept: */*' \
+  -d ''
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Get orders by seller}
+\textbf{GET} \texttt{/api/orders/seller/\{sellerId\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/orders/seller/23f45e89-8b5a-5c55-9df7-240d78a3ce15' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+[
+  {
+    "orderId": "55555555-5555-5555-5555-555555555555",
+    "quantity": 2,
+    "totalPriceCents": 1198,
+    "status": "RESERVED",
+    "reservedAt": "2026-01-30T02:00:00Z",
+    "collectedAt": null,
+    "cancelledAt": null
+  }
+]
+\end{lstlisting}
+
+\subsection{Get orders by organisation}
+\textbf{GET} \texttt{/api/orders/org/\{orgId\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/orders/org/23f45e89-8b5a-5c55-9df7-240d78a3ce15' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+[
+  {
+    "orderId": "55555555-5555-5555-5555-555555555555",
+    "quantity": 2,
+    "totalPriceCents": 1198,
+    "status": "RESERVED",
+    "reservedAt": "2026-01-30T02:00:00Z"
+  }
+]
+\end{lstlisting}
+
+\section{IssueController (\texttt{/api/issues})}
+
+\subsection{Create issue}
+\textbf{POST} \texttt{/api/issues}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'POST' \
+  'http://localhost:8080/api/issues' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "orgId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "type": "UNAVAILABLE",
+  "description": "string"
+}'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Respond to issue}
+\textbf{POST} \texttt{/api/issues/\{id\}/respond}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'POST' \
+  'http://localhost:8080/api/issues/23f45e89-8b5a-5c55-9df7-240d78a3ce15/respond' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "response": "string",
+  "resolve": true
+}'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Resolve issue}
+\textbf{POST} \texttt{/api/issues/\{id\}/resolve}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'POST' \
+  'http://localhost:8080/api/issues/23f45e89-8b5a-5c55-9df7-240d78a3ce15/resolve' \
+  -H 'accept: */*' \
+  -d ''
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Get issues by seller}
+\textbf{GET} \texttt{/api/issues/seller/\{sellerId\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/issues/seller/23f45e89-8b5a-5c55-9df7-240d78a3ce15' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+[
+  {
+    "issueId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "order": {
+      "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "quantity": 0,
+      "totalPriceCents": 0,
+      "status": "RESERVED",
+      "reservedAt": "2026-01-30T18:06:33.422Z",
+      "collectedAt": "2026-01-30T18:06:33.422Z",
+      "cancelledAt": "2026-01-30T18:06:33.422Z"
+    },
+    "organisation": {
+      "orgId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "string",
+      "locationText": "string",
+      "billingEmail": "string",
+      "currentStreakWeeks": 0,
+      "bestStreakWeeks": 0,
+      "lastOrderWeekStart": "2026-01-30",
+      "totalOrders": 0,
+      "createdAt": "2026-01-30T18:06:33.422Z"
+    },
+    "type": "UNAVAILABLE",
+    "description": "string",
+    "status": "OPEN",
+    "sellerResponse": "string",
+    "createdAt": "2026-01-30T18:06:33.422Z",
+    "resolvedAt": "2026-01-30T18:06:33.422Z"
+  }
+]
+\end{lstlisting}
+
+\subsection{Get open issues by seller}
+\textbf{GET} \texttt{/api/issues/seller/\{sellerId\}/open}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/issues/seller/23f45e89-8b5a-5c55-9df7-240d78a3ce15/open' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Respons}
+\begin{lstlisting}
+[
+  {
+    "issueId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "order": {
+      "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "quantity": 0,
+      "totalPriceCents": 0,
+      "status": "RESERVED",
+      "reservedAt": "2026-01-30T18:08:18.317Z",
+      "collectedAt": "2026-01-30T18:08:18.317Z",
+      "cancelledAt": "2026-01-30T18:08:18.317Z"
+    },
+    "organisation": {
+      "orgId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "string",
+      "locationText": "string",
+      "billingEmail": "string",
+      "currentStreakWeeks": 0,
+      "bestStreakWeeks": 0,
+      "lastOrderWeekStart": "2026-01-30",
+      "totalOrders": 0,
+      "createdAt": "2026-01-30T18:08:18.317Z"
+    },
+    "type": "UNAVAILABLE",
+    "description": "string",
+    "status": "OPEN",
+    "sellerResponse": "string",
+    "createdAt": "2026-01-30T18:08:18.317Z",
+    "resolvedAt": "2026-01-30T18:08:18.317Z"
+  }
+]
+\end{lstlisting}
+
+\subsection{Get issues by organisation}
+\textbf{GET} \texttt{/api/issues/org/\{orgId\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/issues/org/23f45e89-8b5a-5c55-9df7-240d78a3ce17' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+[
+  {
+    "issueId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "order": {
+      "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "quantity": 0,
+      "totalPriceCents": 0,
+      "status": "RESERVED",
+      "reservedAt": "2026-01-30T18:09:36.676Z",
+      "collectedAt": "2026-01-30T18:09:36.676Z",
+      "cancelledAt": "2026-01-30T18:09:36.676Z"
+    },
+    "organisation": {
+      "orgId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "string",
+      "locationText": "string",
+      "billingEmail": "string",
+      "currentStreakWeeks": 0,
+      "bestStreakWeeks": 0,
+      "lastOrderWeekStart": "2026-01-30",
+      "totalOrders": 0,
+      "createdAt": "2026-01-30T18:09:36.676Z"
+    },
+    "type": "UNAVAILABLE",
+    "description": "string",
+    "status": "OPEN",
+    "sellerResponse": "string",
+    "createdAt": "2026-01-30T18:09:36.676Z",
+    "resolvedAt": "2026-01-30T18:09:36.676Z"
+  }
+]
+\end{lstlisting}
+
+\section{GamificationController (\texttt{/api/gamification})}
+
+\subsection{List all badges}
+\textbf{GET} \texttt{/api/gamification/badges}
+
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/gamification/badges' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+[
+  {
+    "badgeId": "77777777-7777-7777-7777-777777777777",
+    "code": "FIRST_ORDER",
+    "name": "First Order",
+    "description": "Placed first rescue order"
+  }
+]
+\end{lstlisting}
+
+\subsection{Get org badges}
+\textbf{GET} \texttt{/api/gamification/badges/\{orgId\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/gamification/badges/23f45e89-8b5a-5c55-9df7-240d78a3ce15' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+[
+  {
+    "orgId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "badgeId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "organisation": {
+      "orgId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "string",
+      "locationText": "string",
+      "billingEmail": "string",
+      "currentStreakWeeks": 0,
+      "bestStreakWeeks": 0,
+      "lastOrderWeekStart": "2026-01-30",
+      "totalOrders": 0,
+      "createdAt": "2026-01-30T18:12:46.077Z"
+    },
+    "badge": {
+      "badgeId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "code": "string",
+      "name": "string",
+      "description": "string"
+    },
+    "awardedAt": "2026-01-30T18:12:46.077Z"
+  }
+]
+\end{lstlisting}
+
+\subsection{Get streak}
+\textbf{GET} \texttt{/api/gamification/streak/\{orgId\}} 
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/gamification/streak/23f45e89-8b5a-5c55-9df7-240d78a3ce15' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Get stats}
+\textbf{GET} \texttt{/api/gamification/stats/\{orgId\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/gamification/stats/23f45e89-8b5a-5c55-9df7-240d78a3ce12' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\section{AnalyticsController (\texttt{/api/analytics})}
+
+\subsection{Seller dashboard metrics}
+\textbf{GET} \texttt{/api/analytics/dashboard/\{sellerId\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/analytics/dashboard/23f45e89-8b5a-5c55-9df7-240d78a3ce15' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\subsection{Sell-through breakdown}
+\textbf{GET} \texttt{/api/analytics/sell-through/\{sellerId\}}
+\subsubsection*{Example Request}
+\begin{lstlisting}
+curl -X 'GET' \
+  'http://localhost:8080/api/analytics/sell-through/23f45e89-8b5a-5c55-9df7-240d78a3ce15' \
+  -H 'accept: */*'
+\end{lstlisting}
+
+\subsubsection*{Example Response}
+\begin{lstlisting}
+{}
+\end{lstlisting}
+
+\section{Notes on Example Responses}
+\begin{itemize}[leftmargin=1.2em]
+  \item The example response is shown as \texttt{\{\}} because the schema does not define the exact fields.
+
+\end{itemize}
+
+\end{document}
+

@@ -5,8 +5,6 @@ Project: Food Waste Rescue Marketplace
 ---
 
 
-
-
 ## 1) Badge
 
 **Table:** `Badge`  
