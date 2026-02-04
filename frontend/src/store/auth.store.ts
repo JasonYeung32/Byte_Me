@@ -16,7 +16,7 @@ interface User {
 interface AuthStore {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, role?: Role) => Promise<void>;
   register: (email: string, password: string, role: Role, businessName: string, location?: string) => Promise<void>;
   logout: () => void;
   init: () => void;
@@ -26,8 +26,8 @@ export const useAuth = create<AuthStore>((set, get) => ({
   user: null,
   loading: true,
 
-  login: async (email, password) => {
-    const data = await authApi.login({ email, password });
+  login: async (email, password, role) => {
+    const data = await authApi.login({ email, password, role });
     const user = { token: data.token, userId: data.userId, profileId: data.profileId, email: data.email, role: data.role };
     localStorage.setItem("auth", JSON.stringify(user));
     set({ user });

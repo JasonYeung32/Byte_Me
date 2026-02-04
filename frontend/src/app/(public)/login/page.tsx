@@ -18,6 +18,7 @@ export default function LoginPage() {
   const { user, login, init } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSeller, setIsSeller] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +28,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      router.push(user.role === "SELLER" ? "/dashboard" : "/home");
+      router.push("/home");
     }
   }, [user, router]);
 
@@ -52,7 +53,7 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await login(email, password);
+      await login(email, password, isSeller ? "SELLER" : "ORG_ADMIN");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -96,6 +97,16 @@ export default function LoginPage() {
                 placeholder="Minimum 6 characters"
               />
             </div>
+
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={isSeller}
+                onChange={(e) => setIsSeller(e.target.checked)}
+                className="checkbox"
+              />
+              <span>I am a seller</span>
+            </label>
           </div>
 
           <button

@@ -137,7 +137,7 @@ export default function RegisterPage() {
                 onChange={(e) => setIsSeller(e.target.checked)}
                 className="checkbox"
               />
-              <span>I am a seller (uncheck if you are an organization)</span>
+              <span>I am a seller</span>
             </label>
           </div>
 

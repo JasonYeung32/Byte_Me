@@ -69,6 +69,11 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
 
+        if (req.getRole() != null && user.getRole() != req.getRole()) {
+            String expectedType = req.getRole() == UserAccount.Role.SELLER ? "seller" : "organization";
+            return ResponseEntity.status(401).body("This account is not a " + expectedType + " account");
+        }
+
         UUID profileId = null;
         if (user.getRole() == UserAccount.Role.SELLER) {
             var seller = sellerRepo.findByUserUserId(user.getUserId()).orElse(null);
@@ -122,11 +127,14 @@ public class AuthController {
     public static class LoginRequest {
         private String email;
         private String password;
+        private UserAccount.Role role;
 
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
+        public UserAccount.Role getRole() { return role; }
+        public void setRole(UserAccount.Role role) { this.role = role; }
     }
 
     public static class AuthResponse {
