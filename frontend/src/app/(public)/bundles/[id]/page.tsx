@@ -91,7 +91,7 @@ export default function BundleDetailPage() {
             <span className="bundle-detail-price">${formatPrice(discountedCents)}</span>
             {bundle.discountPct > 0 && (
               <>
-                <span className="bundle-detail-original">${formatPrice(bundle.priceCents)}</span>
+                <span className="bundle-detail-original"> | Was ${formatPrice(bundle.priceCents)}</span>
                 <span className="badge badge-success">Save {bundle.discountPct}%</span>
               </>
             )}
@@ -99,20 +99,20 @@ export default function BundleDetailPage() {
 
           <div className="bundle-detail-info">
             <div className="info-row">
-              <span className="info-label">Pickup date</span>
+              <span className="info-label">Pickup Date: </span>
               <span className="info-value">{formatDate(bundle.pickupStartAt)}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Pickup window</span>
+              <span className="info-label">Pickup Window: </span>
               <span className="info-value">{formatTime(bundle.pickupStartAt)} - {formatTime(bundle.pickupEndAt)}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Location</span>
+              <span className="info-label">Location: </span>
               <span className="info-value">{bundle.seller?.locationText || "Contact seller"}</span>
             </div>
             {bundle.allergensText && (
               <div className="info-row">
-                <span className="info-label">Allergens</span>
+                <span className="info-label">Allergens: </span>
                 <span className="info-value">{bundle.allergensText}</span>
               </div>
             )}
