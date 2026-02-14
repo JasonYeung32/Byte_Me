@@ -53,6 +53,7 @@ export const bundlesApi = {
     priceCents: number;
     discountPct?: number;
     allergensText?: string;
+    activate?: boolean;
   }, token: string) =>
     fetchApi('/bundles', {
       method: 'POST',
