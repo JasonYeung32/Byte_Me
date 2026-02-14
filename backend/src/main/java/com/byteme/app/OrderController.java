@@ -8,9 +8,8 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 // Order and reservation controller
 @RestController
@@ -42,10 +41,21 @@ public class OrderController {
         return reservationRepo.findByOrganisationOrgId(orgId);
     }
 
-    // Get orders by seller
+    // Get orders by seller (returns DTOs with posting title and org name)
     @GetMapping("/seller/{sellerId}")
-    public List<Reservation> getBySeller(@PathVariable UUID sellerId) {
-        return reservationRepo.findByPostingSellerSellerId(sellerId);
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<Map<String, Object>> getBySeller(@PathVariable UUID sellerId) {
+        return reservationRepo.findByPostingSellerSellerId(sellerId).stream().map(r -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("reservationId", r.getReservationId());
+            map.put("postingTitle", r.getPosting().getTitle());
+            map.put("organisationName", r.getOrganisation().getName());
+            map.put("status", r.getStatus().name());
+            map.put("reservedAt", r.getReservedAt().toString());
+            if (r.getCollectedAt() != null) map.put("collectedAt", r.getCollectedAt().toString());
+            if (r.getCancelledAt() != null) map.put("cancelledAt", r.getCancelledAt().toString());
+            return map;
+        }).collect(Collectors.toList());
     }
 
     // Create new order

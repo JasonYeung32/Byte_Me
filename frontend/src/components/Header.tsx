@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import {useState,useEffect} from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/store/auth.store";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const { user, init } = useAuth();
+  const { user, init, logout } = useAuth();
 
   useEffect(() => { init(); }, [init]);
+
+  const isSeller = user?.role === "SELLER";
   const isOrgAdmin = user?.role === "ORG_ADMIN";
 
   return (
@@ -26,19 +28,50 @@ export default function Header() {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8">
-          <NavLink href="/bundles">Browse Bundles</NavLink>
-          <NavLink href="/about">How It Works</NavLink>
-          <NavLink href="/impact">Our Impact</NavLink>
+          {isSeller ? (
+            <>
+              <NavLink href="/dashboard">Dashboard</NavLink>
+              <NavLink href="/analytics">Analytics</NavLink>
+              <NavLink href="/bundles">Bundles</NavLink>
+              <NavLink href="/issues">Issues</NavLink>
+            </>
+          ) : isOrgAdmin ? (
+            <>
+              <NavLink href="/home">Home</NavLink>
+              <NavLink href="/bundles">Browse Bundles</NavLink>
+              <NavLink href="/reservations">Reservations</NavLink>
+              <NavLink href="/gamification">Achievements</NavLink>
+            </>
+          ) : (
+            <>
+              <NavLink href="/bundles">Browse Bundles</NavLink>
+              <NavLink href="/about">How It Works</NavLink>
+              <NavLink href="/impact">Our Impact</NavLink>
+            </>
+          )}
         </div>
 
         {/* Desktop auth */}
-        <div className="hidden md:flex gap-3">
-          <Link href="/login" className="btn btn-secondary text-sm">
-            Log In
-          </Link>
-          <Link href="/register" className="btn btn-primary text-sm">
-            Sign Up
-          </Link>
+        <div className="hidden md:flex gap-3 items-center">
+          {user ? (
+            <>
+              <span style={{ fontSize: "0.85rem", color: "var(--color-muted)" }}>
+                {user.email}
+              </span>
+              <button onClick={logout} className="btn btn-secondary text-sm">
+                Log Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="btn btn-secondary text-sm">
+                Log In
+              </Link>
+              <Link href="/register" className="btn btn-primary text-sm">
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -47,42 +80,43 @@ export default function Header() {
           className="md:hidden p-2"
           aria-label="Toggle menu"
         >
-          {open ? "✕" : "☰"}
+          {open ? "\u2715" : "\u2630"}
         </button>
       </nav>
 
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden border-t border-[var(--border)] px-4 py-4 space-y-4">
-          <NavLink href="/bundles" onClick={() => setOpen(false)}>
-            Browse Bundles
-          </NavLink>
-          <NavLink href="/about" onClick={() => setOpen(false)}>
-            How It Works
-          </NavLink>
-          <NavLink href="/impact" onClick={() => setOpen(false)}>
-            Our Impact
-          </NavLink>
+          {isSeller ? (
+            <>
+              <NavLink href="/dashboard" onClick={() => setOpen(false)}>Dashboard</NavLink>
+              <NavLink href="/analytics" onClick={() => setOpen(false)}>Analytics</NavLink>
+              <NavLink href="/bundles" onClick={() => setOpen(false)}>Bundles</NavLink>
+              <NavLink href="/issues" onClick={() => setOpen(false)}>Issues</NavLink>
+            </>
+          ) : isOrgAdmin ? (
+            <>
+              <NavLink href="/home" onClick={() => setOpen(false)}>Home</NavLink>
+              <NavLink href="/bundles" onClick={() => setOpen(false)}>Browse Bundles</NavLink>
+              <NavLink href="/reservations" onClick={() => setOpen(false)}>Reservations</NavLink>
+              <NavLink href="/gamification" onClick={() => setOpen(false)}>Achievements</NavLink>
+            </>
+          ) : (
+            <>
+              <NavLink href="/bundles" onClick={() => setOpen(false)}>Browse Bundles</NavLink>
+              <NavLink href="/about" onClick={() => setOpen(false)}>How It Works</NavLink>
+              <NavLink href="/impact" onClick={() => setOpen(false)}>Our Impact</NavLink>
+            </>
+          )}
 
           <div className="pt-4 border-t border-[var(--border)] space-y-2">
             {user ? (
-              isOrgAdmin ? (
-                <Link
-                  href="/home"
-                  onClick={() => setOpen(false)}
-                  className="btn btn-primary w-full text-sm"
-                >
-                  Home
-                </Link>
-              ) : (
-                <Link
-                  href="/dashboard"
-                  onClick={() => setOpen(false)}
-                  className="btn btn-primary w-full text-sm"
-                >
-                  Dashboard
-                </Link>
-              )
+              <button
+                onClick={() => { logout(); setOpen(false); }}
+                className="btn btn-secondary w-full text-sm"
+              >
+                Log Out
+              </button>
             ) : (
               <>
                 <Link
