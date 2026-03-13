@@ -36,6 +36,7 @@ class GamificationControllerTest {
     @Mock private ReservationRepository reservationRepo;
     @Mock private BadgeRepository badgeRepo;
     @Mock private OrganisationBadgeRepository orgBadgeRepo;
+    @Mock private RescueEventRepository rescueEventRepo;
 
     @InjectMocks
     private GamificationController gamificationController;
