@@ -237,4 +237,9 @@ export const forecastApi = {
     fetchApi(`/forecast/metrics/${sellerId}`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
+
+  evaluate: (sellerId: string, token: string) =>
+    fetchApi(`/forecast/evaluate/${sellerId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
 };

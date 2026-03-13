@@ -226,6 +226,99 @@ public class ForecastService {
         return sb.toString();
     }
 
+    // Read-only evaluation: runs all 3 models on train/eval split without saving anything
+    public Map<String, Object> evaluateModels(UUID sellerId) {
+        List<DemandObservation> allObs = observationRepo.findBySellerSellerIdOrderByDateDesc(sellerId);
+
+        if (allObs.isEmpty()) {
+            return Map.of("error", "No demand observation history found for this seller.");
+        }
+
+        List<DemandObservation> sorted = allObs.stream()
+                .sorted(Comparator.comparing(DemandObservation::getDate))
+                .collect(Collectors.toList());
+        int splitIdx = (int) (sorted.size() * 0.8);
+        List<DemandObservation> train = sorted.subList(0, Math.max(1, splitIdx));
+        List<DemandObservation> eval = sorted.subList(Math.max(1, splitIdx), sorted.size());
+
+        LocalDate trainStart = train.get(0).getDate();
+        LocalDate trainEnd = train.get(train.size() - 1).getDate();
+        LocalDate evalStart = eval.isEmpty() ? trainEnd : eval.get(0).getDate();
+        LocalDate evalEnd = eval.isEmpty() ? trainEnd : eval.get(eval.size() - 1).getDate();
+
+        List<Double> maPred = new ArrayList<>(), snPred = new ArrayList<>(), emPred = new ArrayList<>();
+        List<Integer> actualRes = new ArrayList<>();
+        List<Double> maNoShow = new ArrayList<>(), snNoShow = new ArrayList<>(), emNoShow = new ArrayList<>();
+        List<Double> actualNoShow = new ArrayList<>();
+        List<Map<String, Object>> samples = new ArrayList<>();
+
+        for (DemandObservation obs : eval) {
+            List<DemandObservation> prior = train.stream()
+                    .filter(o -> o.getSeller().getSellerId().equals(obs.getSeller().getSellerId())
+                            && o.getCategory().getCategoryId().equals(obs.getCategory().getCategoryId())
+                            && o.getWindow().getWindowId().equals(obs.getWindow().getWindowId()))
+                    .collect(Collectors.toList());
+            if (prior.isEmpty()) continue;
+
+            Prediction ma = movingAverage(prior, 4);
+            Prediction sn = seasonalNaive(prior, obs.getDayOfWeek());
+            BundlePosting dummy = new BundlePosting();
+            dummy.setDiscountPct(obs.getDiscountPct());
+            dummy.setQuantityTotal(obs.getObservedReservations());
+            Prediction em = chosenModel(prior, dummy);
+
+            maPred.add(ma.reservations); snPred.add(sn.reservations); emPred.add(em.reservations);
+            actualRes.add(obs.getObservedReservations());
+            maNoShow.add(ma.noShowProb); snNoShow.add(sn.noShowProb); emNoShow.add(em.noShowProb);
+            actualNoShow.add(obs.getObservedNoShowRate());
+
+            if (samples.size() < 5) {
+                Map<String, Object> sample = new LinkedHashMap<>();
+                sample.put("date", obs.getDate().toString());
+                sample.put("category", obs.getCategory().getName());
+                sample.put("window", obs.getWindow().getLabel());
+                sample.put("actual", obs.getObservedReservations());
+                sample.put("movingAvg", ma.reservations);
+                sample.put("seasonalNaive", sn.reservations);
+                sample.put("emaWeighted", em.reservations);
+                samples.add(sample);
+            }
+        }
+
+        Map<String, Object> maMetrics = Map.of(
+                "mae", calculateMAE(maPred, actualRes),
+                "rmse", calculateRMSE(maPred, actualRes),
+                "brierScore", calculateBrierScore(maNoShow, actualNoShow));
+        Map<String, Object> snMetrics = Map.of(
+                "mae", calculateMAE(snPred, actualRes),
+                "rmse", calculateRMSE(snPred, actualRes),
+                "brierScore", calculateBrierScore(snNoShow, actualNoShow));
+        Map<String, Object> emMetrics = Map.of(
+                "mae", calculateMAE(emPred, actualRes),
+                "rmse", calculateRMSE(emPred, actualRes),
+                "brierScore", calculateBrierScore(emNoShow, actualNoShow));
+
+        // Find best model by lowest MAE
+        double maMae = (double) maMetrics.get("mae");
+        double snMae = (double) snMetrics.get("mae");
+        double emMae = (double) emMetrics.get("mae");
+        String bestModel = emMae <= maMae && emMae <= snMae ? "EMA-Weighted (Chosen)"
+                : maMae <= snMae ? "Moving Average (4w)" : "Seasonal Naive (ISO DOW)";
+
+        return Map.of(
+                "models", List.of(
+                        Map.of("name", "Moving Average (4w)", "metrics", maMetrics, "best", bestModel.equals("Moving Average (4w)")),
+                        Map.of("name", "Seasonal Naive (ISO DOW)", "metrics", snMetrics, "best", bestModel.equals("Seasonal Naive (ISO DOW)")),
+                        Map.of("name", "EMA-Weighted (Chosen)", "metrics", emMetrics, "best", bestModel.equals("EMA-Weighted (Chosen)"))
+                ),
+                "trainPeriod", Map.of("start", trainStart.toString(), "end", trainEnd.toString()),
+                "evalPeriod", Map.of("start", evalStart.toString(), "end", evalEnd.toString()),
+                "evalPoints", actualRes.size(),
+                "samples", samples,
+                "bestModel", bestModel
+        );
+    }
+
     // Runs the full forecast pipeline for a seller: train/eval split, all 3 models, saves results
     @Transactional
     public Map<String, Object> runForecast(UUID sellerId) {
