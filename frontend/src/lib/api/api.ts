@@ -43,6 +43,11 @@ export const bundlesApi = {
 
   getById: (id: string) => fetchApi(`/bundles/${id}`),
 
+  bySeller: (sellerId: string, token: string) =>
+    fetchApi(`/bundles/seller/${sellerId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
   create: (data: {
     title: string;
     description?: string;

@@ -122,7 +122,7 @@ export default function OrgGamificationPage() {
         <div className="grid grid-3 mb-6" style={{ gap: "1rem" }}>
           <div className="card" style={{ textAlign: "center", padding: "1.25rem 1rem" }}>
             <p className="text-muted" style={{ fontSize: "0.85rem", marginBottom: "0.25rem" }}>Total Rescues</p>
-            <p style={{ fontSize: "1.75rem", fontWeight: 700 }}>{stats.totalOrders}</p>
+            <p style={{ fontSize: "1.75rem", fontWeight: 700 }}>{stats.totalReservations}</p>
           </div>
           <div className="card" style={{ textAlign: "center", padding: "1.25rem 1rem" }}>
             <p className="text-muted" style={{ fontSize: "0.85rem", marginBottom: "0.25rem" }}>Current Streak</p>

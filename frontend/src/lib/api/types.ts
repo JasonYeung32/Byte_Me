@@ -122,7 +122,7 @@ export interface StreakResponse {
 }
 
 export interface StatsResponse {
-  totalOrders: number;
+  totalReservations: number;
   currentStreakWeeks: number;
   bestStreakWeeks: number;
   badgesEarned: number;
