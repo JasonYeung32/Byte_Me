@@ -407,11 +407,7 @@ public class ForecastService {
         emRun.setMetricsJson(toJson(emMetrics));
         emRun = runRepo.save(emRun);
 
-        // Auto-select best model based on eval MAE
-        Prediction bestPick = selectBestPrediction(
-                new Prediction(0, 0, 0, ""), new Prediction(0, 0, 0, ""), new Prediction(0, 0, 0, ""),
-                maPredicted, snPredicted, emPredicted, actualRes);
-        // Determine which model won
+        // Determine which model won on eval set
         double maMae = calculateMAE(maPredicted, actualRes);
         double snMae = calculateMAE(snPredicted, actualRes);
         double emMae = calculateMAE(emPredicted, actualRes);
