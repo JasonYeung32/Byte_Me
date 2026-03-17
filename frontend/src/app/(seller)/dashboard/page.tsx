@@ -4,7 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/store/auth.store";
 import { analyticsApi, ordersApi, issuesApi } from "@/lib/api/api";
-import type { DashboardResponse, IssueReport, WasteAvoidedResponse } from "@/lib/api/types";
+import type { DashboardResponse, IssueReport, WasteAvoidedResponse, SellThroughResponse } from "@/lib/api/types";
+import {
+  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
+} from "recharts";
 
 interface SellerOrder {
   reservationId: string;
@@ -20,6 +23,7 @@ export default function SellerDashboardPage() {
   const { user } = useAuth();
   const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
   const [waste, setWaste] = useState<WasteAvoidedResponse | null>(null);
+  const [sellThrough, setSellThrough] = useState<SellThroughResponse | null>(null);
   const [orders, setOrders] = useState<SellerOrder[]>([]);
   const [issues, setIssues] = useState<IssueReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,16 +37,18 @@ export default function SellerDashboardPage() {
     setLoading(true);
     setError("");
     try {
-      const [d, o, i, w] = await Promise.all([
+      const [d, o, i, w, st] = await Promise.all([
         analyticsApi.dashboard(sellerId, token),
         ordersApi.bySeller(sellerId, token),
         issuesApi.openBySeller(sellerId, token),
         analyticsApi.wasteAvoided(sellerId, token),
+        analyticsApi.sellThrough(sellerId, token),
       ]);
       setDashboard(d);
       setOrders(o);
       setIssues(i);
       setWaste(w);
+      setSellThrough(st);
     } catch {
       setError("Failed to load dashboard data.");
     } finally {
@@ -131,6 +137,42 @@ export default function SellerDashboardPage() {
             value={dashboard.openIssueCount}
             color={dashboard.openIssueCount > 0 ? "var(--error-dark)" : "var(--success-dark)"}
           />
+        </div>
+      )}
+
+      {/* Sell-through breakdown chart */}
+      {sellThrough && (sellThrough.collected + sellThrough.cancelled + sellThrough.expired) > 0 && (
+        <div className="card mb-6">
+          <h2 className="text-xl font-semibold mb-4">Sell-Through Breakdown</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "2rem", flexWrap: "wrap" }}>
+            <ResponsiveContainer width="100%" height={260} minWidth={250}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: "Collected", value: sellThrough.collected },
+                    { name: "Cancelled", value: sellThrough.cancelled },
+                    { name: "Expired", value: sellThrough.expired },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={100}
+                  paddingAngle={2}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  <Cell fill="#16a34a" />
+                  <Cell fill="#dc2626" />
+                  <Cell fill="#f59e0b" />
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-muted" style={{ fontSize: "0.85rem", marginTop: "0.5rem" }}>
+            Collection rate: {(sellThrough.collectionRate * 100).toFixed(1)}%
+          </p>
         </div>
       )}
 
