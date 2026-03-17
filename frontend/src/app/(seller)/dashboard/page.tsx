@@ -37,18 +37,23 @@ export default function SellerDashboardPage() {
     setLoading(true);
     setError("");
     try {
-      const [d, o, i, w, st] = await Promise.all([
+      const [d, o, i, w] = await Promise.all([
         analyticsApi.dashboard(sellerId, token),
         ordersApi.bySeller(sellerId, token),
         issuesApi.openBySeller(sellerId, token),
         analyticsApi.wasteAvoided(sellerId, token),
-        analyticsApi.sellThrough(sellerId, token),
       ]);
       setDashboard(d);
       setOrders(o);
       setIssues(i);
       setWaste(w);
-      setSellThrough(st);
+      // Load sell-through separately so it doesn't block the dashboard
+      try {
+        const st = await analyticsApi.sellThrough(sellerId, token);
+        setSellThrough(st);
+      } catch {
+        // Non-critical, dashboard still works without the chart
+      }
     } catch {
       setError("Failed to load dashboard data.");
     } finally {
@@ -171,7 +176,7 @@ export default function SellerDashboardPage() {
             </ResponsiveContainer>
           </div>
           <p className="text-muted" style={{ fontSize: "0.85rem", marginTop: "0.5rem" }}>
-            Collection rate: {(sellThrough.collectionRate * 100).toFixed(1)}%
+            Collection rate: {sellThrough.collectionRate.toFixed(1)}%
           </p>
         </div>
       )}

@@ -150,7 +150,9 @@ INSERT INTO bundle_posting (
    date_trunc('week', now()) + interval '11 days' + time '17:00',
    date_trunc('week', now()) + interval '11 days' + time '18:00',
    8, 0, 300, 10, 1500, 'DRAFT')
-ON CONFLICT (posting_id) DO NOTHING;
+ON CONFLICT (posting_id) DO UPDATE SET
+  pickup_start_at = EXCLUDED.pickup_start_at,
+  pickup_end_at = EXCLUDED.pickup_end_at;
 
 -- 4B) Bad posting seeds
 
@@ -286,7 +288,9 @@ INSERT INTO bundle_posting (
   date_trunc('week', now()) + interval '12 days' + time '18:00',
   1, 150, 10, 'ACTIVE'
 )
-ON CONFLICT (posting_id) DO NOTHING;
+ON CONFLICT (posting_id) DO UPDATE SET
+  pickup_start_at = EXCLUDED.pickup_start_at,
+  pickup_end_at = EXCLUDED.pickup_end_at;
 
 INSERT INTO reservation (
   reservation_id, posting_id, org_id, reserved_by_user_id,

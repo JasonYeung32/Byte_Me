@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   title: "Byte Me — Reduce Food Waste",
   description:
     "Connecting surplus food with people who can actually use it.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
