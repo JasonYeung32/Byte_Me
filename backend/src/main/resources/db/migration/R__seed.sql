@@ -29,7 +29,9 @@ ON CONFLICT (label) DO NOTHING;
 INSERT INTO badge (badge_id, code, name, description) VALUES
   ('b1111111-1111-1111-1111-111111111111', 'FIRST_RESCUE', 'First Rescue', 'Completed your first collection.'),
   ('b2222222-2222-2222-2222-222222222222', 'STREAK_4', '4 Week Streak', 'Collected at least once per week for 4 weeks.'),
-  ('b3333333-3333-3333-3333-333333333333', 'CO2_SAVER', 'CO2 Saver', 'Hit a milestone of CO2e saved.')
+  ('b3333333-3333-3333-3333-333333333333', 'CO2_SAVER', 'CO2 Saver', 'Hit a milestone of CO2e saved.'),
+  ('b4444444-4444-4444-4444-444444444444', 'VARIETY_SELLERS', 'Explorer', 'Rescued from 3 or more different sellers.'),
+  ('b5555555-5555-5555-5555-555555555555', 'VARIETY_CATEGORIES', 'Diverse Rescuer', 'Rescued from 3 or more different food categories.')
 ON CONFLICT (code) DO NOTHING;
 
 -- 2) User accounts (password = "password123" bcrypt hashed)
