@@ -30,6 +30,14 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      - name: Install test dependencies
+        working-directory: ./frontend
+        run: npm install -D vitest @vitejs/plugin-react @testing-library/react @testing-library/user-event @testing-library/jest-dom jsdom
+
       - name: Build
         working-directory: ./frontend
         run: npm run build
+
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: npx vitest run
