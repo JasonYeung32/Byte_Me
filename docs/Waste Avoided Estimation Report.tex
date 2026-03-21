@@ -1,0 +1,70 @@
+\documentclass[12pt]{article}
+
+% Packages
+\usepackage{amsmath}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{mdframed}
+\usepackage{framed}
+\usepackage{xcolor}
+% Page setup
+\geometry{margin=1in}
+\onehalfspacing
+
+\title{Waste Avoided Estimation Report}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Waste Avoided Estimation and Assumptions}
+
+
+\subsection{Estimation Method}
+The system tracks food waste avoided by estimating the weight of food redistributed through bundles. Waste avoided is calculated using the following formula:
+
+\begin{equation}
+\text{Waste Avoided (kg)} = \text{Number of Collected Bundles} \times \text{Average Weight per Bundle (kg)}
+\end{equation}
+
+
+\subsection{Key Assumptions}
+\begin{itemize}
+
+    \item Each bundle contains approximately X kg of food on average.
+    \item This estimate is based on typical surplus food bundle sizes from similar food redistribution platforms and internal testing.
+    \item The weight is assumed to be constant across bundles for the purposes of analytics.
+\end{itemize}
+
+
+
+
+\subsection{These assumptions are}
+
+\begin{itemize}
+    \item Hard-coded in the analytics pipeline for consistency across all calculations.
+    \item Waste Avoided data  is reflected in the Seller Analytics dashboard.
+\end{itemize}
+
+
+
+
+\subsection{Example}
+
+\begin{framed}
+\begin{itemize}
+    \item Waste avoided is estimated.
+    \item Assumption: each collected bundle contains $\sim$1.5 kg of food on average.
+    \item Calculation: \( \text{wasteAvoidedKg} = \text{bundlesCollected} \cdot 1.5 \)
+\end{itemize}
+\end{framed}
+
+
+
+
+
+
+\subsection{Summary}
+Waste avoided is estimated using the number of collected bundles multiplied by an assumed average bundle weight (e.g., 1.5 kg per bundle)
+\end{document}
