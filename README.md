@@ -251,6 +251,16 @@ Byte_Me/
 
 ---
 
+## Active Members
+- Caspar Hadley
+- Marcos Ashton
+- Charlie Winders
+- Ben Parker
+- Eddie Allman
+- Rafe Crowley
+- Jason Yeung
+- Theo Chen
+
 ## License
 
 This project is licensed under the Apache 2.0 License. See [LICENSE](LICENSE) for details.
